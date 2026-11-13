@@ -3,7 +3,13 @@ import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { jwt } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 
-const mongoClient = new MongoClient(process.env.MONGODB_URI!);
+const mongoURI = process.env.MONGODB_URI;
+
+if (!mongoURI) {
+  throw new Error("MONGODB_URI is not defined");
+}
+
+const mongoClient = new MongoClient(mongoURI);
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -15,6 +21,9 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false,
+    minPasswordLength: 6,
+    maxPasswordLength: 128,
   },
 
   plugins: [jwt()],
