@@ -1,90 +1,86 @@
+
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Search,
   MapPin,
-  Star,
   SlidersHorizontal,
   ArrowUpDown,
   ArrowRight,
   Camera,
+  Loader2,
+  Users,
 } from "lucide-react";
 
-const studios = [
-  {
-    id: "1",
-    title: "The White Canvas Studio",
-    category: "Photo Studios",
-    location: "New York, USA",
-    price: 65,
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800",
-  },
-  {
-    id: "2",
-    title: "Cinematic Production Stage",
-    category: "Sound Stages",
-    location: "Los Angeles, USA",
-    price: 120,
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800",
-  },
-  {
-    id: "3",
-    title: "The Podcast Corner",
-    category: "Podcast Rooms",
-    location: "Chicago, USA",
-    price: 45,
-    rating: 5.0,
-    image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800",
-  },
-  {
-    id: "4",
-    title: "Echo Music Studio",
-    category: "Music Suites",
-    location: "Austin, USA",
-    price: 80,
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800",
-  },
-  {
-    id: "5",
-    title: "Creative Art House",
-    category: "Art Workshops",
-    location: "Brooklyn, USA",
-    price: 55,
-    rating: 4.7,
-    image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800",
-  },
-  {
-    id: "6",
-    title: "Urban Photography Loft",
-    category: "Photo Studios",
-    location: "Miami, USA",
-    price: 75,
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800",
-  },
-];
+const API_URL = "http://localhost:5000";
 
-const categories = [
-  "All Categories",
-  "Photo Studios",
-  "Sound Stages",
-  "Podcast Rooms",
-  "Music Suites",
-  "Art Workshops",
-];
+interface Studio {
+  _id: string;
+  title: string;
+  category: string;
+  location: string;
+  price: number;
+  capacity: number;
+  image: string;
+  description: string;
+}
 
 export default function StudiosPage() {
+  const [studios, setStudios] = useState<Studio[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [sort, setSort] = useState("default");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredStudios = useMemo(() => {
-    let result = studios.filter((studio) => {
+  const fetchStudios = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_URL}/api/studios`, {
+        cache: "no-store",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to load studios");
+      }
+
+      const studioList: Studio[] = result.data || [];
+
+      setStudios(studioList);
+
+      setCategories(
+        Array.from(
+          new Set(studioList.map((studio) => studio.category))
+        )
+      );
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchStudios();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [fetchStudios]);
+
+  const filteredStudios = studios
+    .filter((studio) => {
       const matchesSearch =
         studio.title.toLowerCase().includes(search.toLowerCase()) ||
         studio.location.toLowerCase().includes(search.toLowerCase());
@@ -94,22 +90,21 @@ export default function StudiosPage() {
         studio.category === category;
 
       return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sort === "low") return a.price - b.price;
+      if (sort === "high") return b.price - a.price;
+      return 0;
     });
 
-    if (sort === "low") {
-      result = [...result].sort((a, b) => a.price - b.price);
-    } else if (sort === "high") {
-      result = [...result].sort((a, b) => b.price - a.price);
-    } else if (sort === "rating") {
-      result = [...result].sort((a, b) => b.rating - a.rating);
-    }
-
-    return result;
-  }, [search, category, sort]);
+  function clearFilters() {
+    setSearch("");
+    setCategory("All Categories");
+    setSort("default");
+  }
 
   return (
     <div className="min-h-screen bg-base-100">
-      {/* Page Banner */}
       <section className="bg-base-200 px-5 py-16 md:px-10">
         <div className="mx-auto max-w-7xl">
           <span className="font-semibold uppercase tracking-widest text-primary">
@@ -128,22 +123,17 @@ export default function StudiosPage() {
           <div className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row">
             <label className="input input-bordered flex flex-1 items-center gap-3 bg-base-100">
               <Search size={20} className="text-base-content/50" />
-
               <input
                 type="text"
                 placeholder="Search studio or location..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(event) => setSearch(event.target.value)}
                 className="grow"
               />
             </label>
 
             <button
-              onClick={() => {
-                setSearch("");
-                setCategory("All Categories");
-                setSort("default");
-              }}
+              onClick={clearFilters}
               className="btn btn-outline"
             >
               Clear Filters
@@ -152,7 +142,6 @@ export default function StudiosPage() {
         </div>
       </section>
 
-      {/* Studios */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:px-10">
         <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
@@ -171,9 +160,11 @@ export default function StudiosPage() {
 
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(event) => setCategory(event.target.value)}
                 className="select select-sm border-none bg-transparent focus:outline-none"
               >
+                <option value="All Categories">All Categories</option>
+
                 {categories.map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -187,23 +178,41 @@ export default function StudiosPage() {
 
               <select
                 value={sort}
-                onChange={(e) => setSort(e.target.value)}
+                onChange={(event) => setSort(event.target.value)}
                 className="select select-sm border-none bg-transparent focus:outline-none"
               >
                 <option value="default">Default Sorting</option>
                 <option value="low">Price: Low to High</option>
                 <option value="high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
               </select>
             </label>
           </div>
         </div>
 
-        {filteredStudios.length > 0 ? (
+        {loading ? (
+          <div className="flex min-h-64 items-center justify-center">
+            <Loader2 className="animate-spin text-primary" size={36} />
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border border-base-300 bg-base-200 px-5 py-16 text-center">
+            <h3 className="text-xl font-bold">
+              Unable to Load Studios
+            </h3>
+            <p className="mt-2 text-sm text-base-content/60">
+              {error}
+            </p>
+            <button
+              onClick={fetchStudios}
+              className="btn btn-primary mt-6"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : filteredStudios.length > 0 ? (
           <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
             {filteredStudios.map((studio) => (
               <article
-                key={studio.id}
+                key={studio._id}
                 className="group overflow-hidden rounded-2xl border border-base-300 bg-base-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
                 <div className="relative h-60 overflow-hidden">
@@ -215,14 +224,6 @@ export default function StudiosPage() {
 
                   <span className="absolute left-4 top-4 rounded-full bg-base-100 px-3 py-1.5 text-xs font-bold text-primary">
                     {studio.category}
-                  </span>
-
-                  <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-base-100 px-3 py-1.5 text-sm font-bold">
-                    <Star
-                      size={15}
-                      className="fill-yellow-400 text-yellow-400"
-                    />
-                    {studio.rating}
                   </span>
                 </div>
 
@@ -236,10 +237,19 @@ export default function StudiosPage() {
                     {studio.location}
                   </p>
 
+                  <p className="mt-2 flex items-center gap-2 text-sm text-base-content/60">
+                    <Users size={16} />
+                    Capacity: {studio.capacity} people
+                  </p>
+
+                  <p className="mt-3 line-clamp-2 text-sm text-base-content/60">
+                    {studio.description}
+                  </p>
+
                   <div className="mt-5 flex items-center justify-between border-t border-base-300 pt-4">
                     <div>
                       <p className="text-xl font-extrabold text-primary">
-                        ${studio.price}
+                        ৳{studio.price.toLocaleString("en-BD")}
                         <span className="text-sm font-normal text-base-content/60">
                           {" "}/ hr
                         </span>
@@ -247,7 +257,7 @@ export default function StudiosPage() {
                     </div>
 
                     <Link
-                      href={`/studios/${studio.id}`}
+                      href={`/studios/${studio._id}`}
                       className="btn btn-primary btn-sm rounded-lg"
                     >
                       View Details
@@ -269,15 +279,11 @@ export default function StudiosPage() {
             </h3>
 
             <p className="mt-2 max-w-md text-sm text-base-content/60">
-              We couldn&apos;t find any studios matching your search.
-              Try changing your search or category.
+              No studios match your search. Try changing your filters.
             </p>
 
             <button
-              onClick={() => {
-                setSearch("");
-                setCategory("All Categories");
-              }}
+              onClick={clearFilters}
               className="btn btn-primary mt-6"
             >
               Clear Filters
