@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 import {
   ArrowLeft,
   CalendarDays,
@@ -39,12 +40,24 @@ export default function BookStudioPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
+  const { data: session, isPending: sessionPending } = useSession();
+
   const [studio, setStudio] = useState<Studio | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("10:00");
   const [duration, setDuration] = useState("1");
+
+  const bookingPath = `/studios/${params.id}/book`;
+
+  useEffect(() => {
+    if (!sessionPending && !session?.user) {
+      router.replace(
+        `/login?callbackURL=${encodeURIComponent(bookingPath)}`
+      );
+    }
+  }, [sessionPending, session, router, bookingPath]);
 
   const fetchStudio = useCallback(async () => {
     try {
@@ -98,14 +111,18 @@ export default function BookStudioPage() {
       const tokenResponse = await fetch("/api/auth/token");
 
       if (!tokenResponse.ok) {
-        router.push(`/login?callbackURL=${encodeURIComponent(`/studios/${studio._id}/book`)}`);
+        router.push(
+          `/login?callbackURL=${encodeURIComponent(bookingPath)}`
+        );
         return;
       }
 
       const tokenData = await tokenResponse.json();
 
       if (!tokenData.token) {
-        router.push(`/login?callbackURL=${encodeURIComponent(`/studios/${studio._id}/book`)}`);
+        router.push(
+          `/login?callbackURL=${encodeURIComponent(bookingPath)}`
+        );
         return;
       }
 
@@ -142,7 +159,7 @@ export default function BookStudioPage() {
     }
   }
 
-  if (loading) {
+  if (sessionPending || !session?.user || loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={36} />
