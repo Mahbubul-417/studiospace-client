@@ -1,17 +1,27 @@
+
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Aperture, LogIn } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import { toast } from "sonner";
-import { Suspense } from "react";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  function getDestination() {
+    const callbackURL = searchParams.get("callbackURL");
+
+    return callbackURL?.startsWith("/") && !callbackURL.startsWith("//")
+      ? callbackURL
+      : "/";
+  }
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,18 +45,31 @@ function LoginForm() {
 
       toast.success("Login successful!");
 
-      const callbackURL = searchParams.get("callbackURL");
-      const destination =
-        callbackURL?.startsWith("/") && !callbackURL.startsWith("//")
-          ? callbackURL
-          : "/";
-
-      router.push(destination);
+      router.push(getDestination());
       router.refresh();
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setGoogleLoading(true);
+
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: getDestination(),
+      });
+
+      if (error) {
+        toast.error(error.message || "Google login failed");
+      }
+    } catch {
+      toast.error("Google login failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -92,7 +115,7 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || googleLoading}
               className="btn btn-primary w-full"
             >
               {loading ? (
@@ -107,6 +130,22 @@ function LoginForm() {
           </form>
 
           <div className="divider">OR</div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading || googleLoading}
+            className="btn btn-outline w-full"
+          >
+            {googleLoading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <>
+                <span className="text-lg font-bold">G</span>
+                Continue with Google
+              </>
+            )}
+          </button>
 
           <p className="text-center text-sm text-base-content/70">
             Don&apos;t have an account?{" "}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import {
@@ -12,7 +13,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   MapPin,
-  Star,
   ShieldCheck,
   BadgeCheck,
   Headphones,
@@ -21,10 +21,20 @@ import {
   CalendarCheck,
   Sparkles,
 } from "lucide-react";
-
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+
+interface Studio {
+  _id: string;
+  title: string;
+  category: string;
+  location: string;
+  price: number;
+  image: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const slides = [
   {
@@ -75,69 +85,6 @@ const categories = [
     name: "Art Workshops",
     description: "Space for imagination to grow.",
     icon: Palette,
-  },
-];
-
-const featuredStudios = [
-  {
-    id: "1",
-    title: "The White Canvas Studio",
-    category: "Photo Studios",
-    location: "New York, USA",
-    price: 65,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800",
-  },
-  {
-    id: "2",
-    title: "Cinematic Production Stage",
-    category: "Sound Stages",
-    location: "Los Angeles, USA",
-    price: 120,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800",
-  },
-  {
-    id: "3",
-    title: "The Podcast Corner",
-    category: "Podcast Rooms",
-    location: "Chicago, USA",
-    price: 45,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800",
-  },
-  {
-    id: "4",
-    title: "Echo Music Studio",
-    category: "Music Suites",
-    location: "Austin, USA",
-    price: 80,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800",
-  },
-  {
-    id: "5",
-    title: "Creative Art House",
-    category: "Art Workshops",
-    location: "Brooklyn, USA",
-    price: 55,
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800",
-  },
-  {
-    id: "6",
-    title: "Urban Photography Loft",
-    category: "Photo Studios",
-    location: "Miami, USA",
-    price: 75,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800",
   },
 ];
 
@@ -200,6 +147,38 @@ const guarantees = [
 ];
 
 export default function Home() {
+  const [featuredStudios, setFeaturedStudios] = useState<Studio[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [featuredError, setFeaturedError] = useState("");
+
+  useEffect(() => {
+    async function loadFeaturedStudios() {
+      try {
+        setFeaturedError("");
+
+        const response = await fetch(`${API_URL}/api/studios?featured=true`);
+
+        if (!response.ok) {
+          throw new Error("Failed to load featured studios");
+        }
+
+        const result: { success: boolean; data: Studio[] } = await response.json();
+
+        if (!result.success || !Array.isArray(result.data)) {
+          throw new Error("Invalid studio data received");
+        }
+
+        setFeaturedStudios(result.data);
+      } catch {
+        setFeaturedError("Unable to load featured studios. Please try again.");
+      } finally {
+        setFeaturedLoading(false);
+      }
+    }
+
+    void loadFeaturedStudios();
+  }, []);
+
   return (
     <>
       {/* Hero Slider */}
@@ -289,58 +268,63 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredStudios.map((studio) => (
-              <article
-                key={studio.id}
-                className="group overflow-hidden rounded-2xl border border-base-300 bg-base-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-56 overflow-hidden">
-                  <img
-                    src={studio.image}
-                    alt={studio.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+          {featuredLoading ? (
+            <p className="py-12 text-center text-base-content/60">
+              Loading featured studios...
+            </p>
+          ) : featuredError ? (
+            <p className="py-12 text-center text-error">{featuredError}</p>
+          ) : featuredStudios.length === 0 ? (
+            <p className="py-12 text-center text-base-content/60">
+              No studios are available yet.
+            </p>
+          ) : (
+            <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredStudios.map((studio) => (
+                <article
+                  key={studio._id}
+                  className="group overflow-hidden rounded-2xl border border-base-300 bg-base-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={studio.image}
+                      alt={studio.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
 
-                  <span className="absolute left-4 top-4 rounded-full bg-base-100 px-3 py-1.5 text-xs font-bold text-primary">
-                    {studio.category}
-                  </span>
+                    <span className="absolute left-4 top-4 rounded-full bg-base-100 px-3 py-1.5 text-xs font-bold text-primary">
+                      {studio.category}
+                    </span>
+                  </div>
 
-                  <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-base-100 px-3 py-1.5 text-sm font-bold">
-                    <Star size={15} className="fill-yellow-400 text-yellow-400" />
-                    {studio.rating}
-                  </span>
-                </div>
+                  <div className="p-5">
+                    <h3 className="text-xl font-bold">{studio.title}</h3>
 
-                <div className="p-5">
-                  <h3 className="text-xl font-bold">
-                    {studio.title}
-                  </h3>
-
-                  <p className="mt-2 flex items-center gap-2 text-sm text-base-content/60">
-                    <MapPin size={16} />
-                    {studio.location}
-                  </p>
-
-                  <div className="mt-5 flex items-center justify-between border-t border-base-300 pt-4">
-                    <p className="text-lg font-extrabold text-primary">
-                      ${studio.price}
-                      <span className="text-sm font-normal text-base-content/60">
-                        {" "}/ hr
-                      </span>
+                    <p className="mt-2 flex items-center gap-2 text-sm text-base-content/60">
+                      <MapPin size={16} />
+                      {studio.location}
                     </p>
 
-                    <Link
-                      href={`/studios/${studio.id}`}
-                      className="btn btn-primary btn-sm rounded-lg"
-                    >
-                      View Details
-                    </Link>
+                    <div className="mt-5 flex items-center justify-between border-t border-base-300 pt-4">
+                      <p className="text-lg font-extrabold text-primary">
+                        ${studio.price}
+                        <span className="text-sm font-normal text-base-content/60">
+                          {" "}/ hr
+                        </span>
+                      </p>
+
+                      <Link
+                        href={`/studios/${studio._id}`}
+                        className="btn btn-primary btn-sm rounded-lg"
+                      >
+                        View Details
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

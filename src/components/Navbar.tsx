@@ -17,6 +17,7 @@ import {
   LogOut,
   LayoutDashboard,
   CalendarDays,
+  ClipboardList,
 } from "lucide-react";
 
 const navLinks = [
@@ -27,7 +28,7 @@ const navLinks = [
 ];
 
 function subscribe() {
-  return () => {};
+  return () => { };
 }
 
 function useMounted() {
@@ -89,9 +90,8 @@ export default function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`text-sm font-semibold transition-colors hover:text-primary ${
-                      active ? "text-primary" : "text-base-content/70"
-                    }`}
+                    className={`text-sm font-semibold transition-colors hover:text-primary ${active ? "text-primary" : "text-base-content/70"
+                      }`}
                   >
                     {link.name}
                   </Link>
@@ -134,6 +134,13 @@ export default function Navbar() {
                     className="btn btn-ghost btn-sm"
                   >
                     My Bookings
+                  </Link>
+
+                  <Link
+                    href="/host-bookings"
+                    className="btn btn-ghost btn-sm"
+                  >
+                    Booking Requests
                   </Link>
 
                   <span className="hidden max-w-28 truncate text-sm font-semibold xl:block">
@@ -216,6 +223,15 @@ export default function Navbar() {
                   >
                     <CalendarDays size={18} />
                     My Bookings
+                  </Link>
+
+                  <Link
+                    href="/host-bookings"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 font-medium"
+                  >
+                    <ClipboardList size={18} />
+                    Booking Requests
                   </Link>
 
                   <button

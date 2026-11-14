@@ -1,15 +1,18 @@
+
 "use client";
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Aperture, UserPlus } from "lucide-react";
-import { signUp } from "@/lib/auth-client";
+import { signIn, signUp } from "@/lib/auth-client";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleRegister(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -64,6 +67,25 @@ export default function RegisterPage() {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleRegister() {
+    setGoogleLoading(true);
+
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+
+      if (error) {
+        toast.error(error.message || "Google registration failed");
+      }
+    } catch {
+      toast.error("Google registration failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -154,7 +176,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || googleLoading}
               className="btn btn-primary mt-3 w-full"
             >
               {loading ? (
@@ -169,6 +191,22 @@ export default function RegisterPage() {
           </form>
 
           <div className="divider">OR</div>
+
+          <button
+            type="button"
+            onClick={handleGoogleRegister}
+            disabled={loading || googleLoading}
+            className="btn btn-outline w-full"
+          >
+            {googleLoading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <>
+                <span className="text-lg font-bold">G</span>
+                Continue with Google
+              </>
+            )}
+          </button>
 
           <p className="text-center text-sm text-base-content/70">
             Already have an account?{" "}
