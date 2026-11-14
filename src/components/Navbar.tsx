@@ -1,15 +1,22 @@
+
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+import { signOut, useSession } from "@/lib/auth-client";
+import { toast } from "sonner";
 import {
   Aperture,
   Menu,
   X,
   Sun,
   Moon,
+  User,
+  LogOut,
+  LayoutDashboard,
+  CalendarDays,
 } from "lucide-react";
 
 const navLinks = [
@@ -33,10 +40,27 @@ function useMounted() {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
+
+  const { data: session, isPending } = useSession();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const mounted = useMounted();
+
+  const isLoggedIn = !!session?.user;
+
+  async function handleLogout() {
+    try {
+      await signOut();
+
+      toast.success("Logged out successfully");
+      setMenuOpen(false);
+      router.refresh();
+    } catch {
+      toast.error("Unable to log out. Please try again.");
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-base-300 bg-base-100/95 backdrop-blur-md">
@@ -95,16 +119,50 @@ export default function Navbar() {
           )}
 
           <div className="hidden items-center gap-2 sm:flex">
-            <Link href="/login" className="btn btn-ghost btn-sm">
-              Login
-            </Link>
+            {!isPending && (
+              isLoggedIn ? (
+                <>
+                  <Link
+                    href="/my-listings"
+                    className="btn btn-ghost btn-sm"
+                  >
+                    My Listings
+                  </Link>
 
-            <Link
-              href="/register"
-              className="btn btn-primary btn-sm px-5"
-            >
-              Register
-            </Link>
+                  <Link
+                    href="/my-bookings"
+                    className="btn btn-ghost btn-sm"
+                  >
+                    My Bookings
+                  </Link>
+
+                  <span className="hidden max-w-28 truncate text-sm font-semibold xl:block">
+                    {session.user.name || session.user.email}
+                  </span>
+
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-outline btn-sm"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="btn btn-ghost btn-sm">
+                    Login
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    className="btn btn-primary btn-sm px-5"
+                  >
+                    Register
+                  </Link>
+                </>
+              )
+            )}
           </div>
 
           <button
@@ -133,23 +191,62 @@ export default function Navbar() {
             ))}
           </ul>
 
-          <div className="mt-5 flex gap-3 border-t border-base-300 pt-4 sm:hidden">
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="btn btn-outline flex-1"
-            >
-              Login
-            </Link>
+          {!isPending && (
+            <div className="mt-5 flex flex-col gap-3 border-t border-base-300 pt-4">
+              {isLoggedIn ? (
+                <>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-base-content/70">
+                    <User size={17} />
+                    {session.user.name || session.user.email}
+                  </p>
 
-            <Link
-              href="/register"
-              onClick={() => setMenuOpen(false)}
-              className="btn btn-primary flex-1"
-            >
-              Register
-            </Link>
-          </div>
+                  <Link
+                    href="/my-listings"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 font-medium"
+                  >
+                    <LayoutDashboard size={18} />
+                    My Listings
+                  </Link>
+
+                  <Link
+                    href="/my-bookings"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 font-medium"
+                  >
+                    <CalendarDays size={18} />
+                    My Bookings
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-outline w-full"
+                  >
+                    <LogOut size={17} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="flex gap-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="btn btn-outline flex-1"
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="btn btn-primary flex-1"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </header>
