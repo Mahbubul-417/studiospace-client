@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   ClipboardList,
+  ChevronDown,
 } from "lucide-react";
 
 const navLinks = [
@@ -65,14 +66,14 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-base-300 bg-base-100/95 backdrop-blur-md">
-      <nav className="navbar mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <nav className="navbar mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <div className="navbar-start">
           <Link href="/" className="flex items-center gap-2">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-content">
               <Aperture size={25} />
             </span>
 
-            <span className="text-xl font-extrabold tracking-tight">
+            <span className="text-lg font-extrabold tracking-tight sm:text-xl">
               Studio<span className="text-primary">Space</span>
             </span>
           </Link>
@@ -90,7 +91,9 @@ export default function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`text-sm font-semibold transition-colors hover:text-primary ${active ? "text-primary" : "text-base-content/70"
+                    className={`text-sm font-semibold transition-colors hover:text-primary ${active
+                        ? "text-primary"
+                        : "text-base-content/70"
                       }`}
                   >
                     {link.name}
@@ -101,7 +104,7 @@ export default function Navbar() {
           </ul>
         </div>
 
-        <div className="navbar-end gap-2">
+        <div className="navbar-end gap-1 sm:gap-2">
           {mounted && (
             <button
               onClick={() =>
@@ -118,59 +121,89 @@ export default function Navbar() {
             </button>
           )}
 
-          <div className="hidden items-center gap-2 sm:flex">
-            {!isPending && (
-              isLoggedIn ? (
-                <>
-                  <Link
-                    href="/my-listings"
-                    className="btn btn-ghost btn-sm"
-                  >
-                    My Listings
-                  </Link>
+          {!isPending &&
+            (isLoggedIn ? (
+              <div className="dropdown dropdown-end">
+                <button
+                  tabIndex={0}
+                  className="btn btn-ghost h-auto min-h-12 gap-2 px-2 normal-case"
+                  aria-label="Open profile menu"
+                >
+                  {session.user.image ? (
+                    <img
+                      src={session.user.image}
+                      alt="Profile"
+                      className="h-9 w-9 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <User size={20} />
+                    </span>
+                  )}
 
-                  <Link
-                    href="/my-bookings"
-                    className="btn btn-ghost btn-sm"
-                  >
-                    My Bookings
-                  </Link>
-
-                  <Link
-                    href="/host-bookings"
-                    className="btn btn-ghost btn-sm"
-                  >
-                    Booking Requests
-                  </Link>
-
-                  <span className="hidden max-w-28 truncate text-sm font-semibold xl:block">
+                  <span className="max-w-16 truncate text-sm font-semibold sm:max-w-32">
                     {session.user.name || session.user.email}
                   </span>
 
-                  <button
-                    onClick={handleLogout}
-                    className="btn btn-outline btn-sm"
-                  >
-                    <LogOut size={16} />
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="btn btn-ghost btn-sm">
-                    Login
-                  </Link>
+                  <ChevronDown size={16} className="text-base-content/60" />
+                </button>
 
-                  <Link
-                    href="/register"
-                    className="btn btn-primary btn-sm px-5"
-                  >
-                    Register
-                  </Link>
-                </>
-              )
-            )}
-          </div>
+                <ul
+                  tabIndex={0}
+                  className="menu dropdown-content z-[60] mt-3 w-60 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
+                >
+                  <li className="menu-title">
+                    <span>My Account</span>
+                  </li>
+
+                  <li>
+                    <Link href="/my-listings">
+                      <LayoutDashboard size={18} />
+                      My Listings
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link href="/my-bookings">
+                      <CalendarDays size={18} />
+                      My Bookings
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link href="/host-bookings">
+                      <ClipboardList size={18} />
+                      Booking Requests
+                    </Link>
+                  </li>
+
+                  <div className="my-1 border-t border-base-300" />
+
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className="text-error"
+                    >
+                      <LogOut size={18} />
+                      Logout
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            ) : (
+              <div className="hidden items-center gap-2 sm:flex">
+                <Link href="/login" className="btn btn-ghost btn-sm">
+                  Login
+                </Link>
+
+                <Link
+                  href="/register"
+                  className="btn btn-primary btn-sm px-5"
+                >
+                  Register
+                </Link>
+              </div>
+            ))}
 
           <button
             className="btn btn-ghost btn-circle lg:hidden"
@@ -198,69 +231,23 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {!isPending && (
-            <div className="mt-5 flex flex-col gap-3 border-t border-base-300 pt-4">
-              {isLoggedIn ? (
-                <>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-base-content/70">
-                    <User size={17} />
-                    {session.user.name || session.user.email}
-                  </p>
+          {!isPending && !isLoggedIn && (
+            <div className="mt-5 flex gap-3 border-t border-base-300 pt-4">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="btn btn-outline flex-1"
+              >
+                Login
+              </Link>
 
-                  <Link
-                    href="/my-listings"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 font-medium"
-                  >
-                    <LayoutDashboard size={18} />
-                    My Listings
-                  </Link>
-
-                  <Link
-                    href="/my-bookings"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 font-medium"
-                  >
-                    <CalendarDays size={18} />
-                    My Bookings
-                  </Link>
-
-                  <Link
-                    href="/host-bookings"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 font-medium"
-                  >
-                    <ClipboardList size={18} />
-                    Booking Requests
-                  </Link>
-
-                  <button
-                    onClick={handleLogout}
-                    className="btn btn-outline w-full"
-                  >
-                    <LogOut size={17} />
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <div className="flex gap-3">
-                  <Link
-                    href="/login"
-                    onClick={() => setMenuOpen(false)}
-                    className="btn btn-outline flex-1"
-                  >
-                    Login
-                  </Link>
-
-                  <Link
-                    href="/register"
-                    onClick={() => setMenuOpen(false)}
-                    className="btn btn-primary flex-1"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
+              <Link
+                href="/register"
+                onClick={() => setMenuOpen(false)}
+                className="btn btn-primary flex-1"
+              >
+                Register
+              </Link>
             </div>
           )}
         </div>
