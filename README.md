@@ -1,182 +1,119 @@
 # StudioSpace
 
-**StudioSpace** is a creative studio booking platform where users can discover, list, and book creative spaces for photography, videography, podcasting, music production, and other creative activities.
+StudioSpace is a studio discovery and booking platform where users can explore creative spaces, view studio details, create listings, and manage bookings.
 
-🌐 **Live Website:** [Add Your Deployed Client URL Here]
+## Live Website
 
----
+- **Frontend:** https://studiospace-site.vercel.app/
+- **Backend API:** https://studiospace-server-gqag.onrender.com/
 
-## ✨ Features
+## Features
 
-- **User Authentication:** Register and log in using email/password or Google authentication.
-- **Explore Studios:** Browse available creative studios with search, category filtering, and price sorting.
-- **Studio Details:** View studio descriptions, images, locations, pricing, capacity, and amenities.
-- **Studio Management:** Hosts can add, edit, and delete their studio listings.
-- **Multiple Image Options:** Upload studio images or provide an image URL.
-- **Booking System:** Users can submit booking requests for their preferred studios.
-- **Booking Management:** Customers can view their bookings and cancel pending requests.
-- **Host Dashboard:** Hosts can view booking requests and confirm or cancel them.
-- **Booking Conflict Prevention:** Prevents overlapping confirmed bookings for the same studio.
-- **Responsive Design:** Optimized for desktop, tablet, and mobile devices.
-- **Dark and Light Mode:** Switch between different theme preferences.
+- Email and password authentication.
+- Google sign-in.
+- Browse and explore studio listings.
+- Search and filter studios.
+- View studio details, photos, amenities, location, and pricing.
+- Create, edit, and manage studio listings.
+- Upload studio images using ImgBB.
+- Submit studio booking requests.
+- View personal bookings and booking statuses.
+- Studio owners can manage booking requests, including confirming or cancelling them.
+- Prevent overlapping bookings for the same studio and time.
+- Responsive interface for desktop, tablet, and mobile.
+- Light and dark theme support.
 
----
+## Technology Stack
 
-## 🛠️ Tech Stack
-
-### Frontend
-- Next.js
-- React
+- Next.js 16
+- React 19
 - TypeScript
 - Tailwind CSS
 - DaisyUI
-- Lucide React
-- Sonner
-- Swiper
-- Next Themes
-
-### Backend
-- Node.js
-- Express.js
-- TypeScript
-- MongoDB
 - Better Auth
-- JWT Authentication
-- ImgBB API
+- MongoDB
+- Google OAuth
+- ImgBB
+- Sonner
+- Lucide React
 
----
+## Getting Started
 
-## ⚙️ Local Setup
-
-Follow these steps to run StudioSpace locally.
-
-### Prerequisites
-
-- Node.js
-- npm
-- MongoDB database
-- Google OAuth credentials
-- ImgBB API key
-
-### 1. Clone the repositories
-
-Clone both the frontend and backend repositories.
+### 1. Clone the repository
 
 ```bash
-git clone <YOUR_FRONTEND_REPOSITORY_URL>
-git clone <YOUR_BACKEND_REPOSITORY_URL>
+git clone <FRONTEND_GITHUB_REPOSITORY_URL>
+cd <FRONTEND_PROJECT_FOLDER>
 ```
 
-### 2. Set up the Backend
-
-Navigate to the backend directory:
-
-```bash
-cd studiospace-server
-```
-
-Install dependencies:
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-Create a `.env` file in the backend root directory and configure:
+### 3. Configure environment variables
 
-```env
-PORT=5000
-CLIENT_URL=http://localhost:3000
-MONGODB_URI=your_mongodb_connection_string
-AUTH_BASE_URL=http://localhost:3000
-AUTH_JWKS_URL=http://localhost:3000/api/auth/jwks
-```
-
-Start the backend development server:
-
-```bash
-npm run dev
-```
-
-The backend will run at:
-
-`http://localhost:5000`
-
-### 3. Set up the Frontend
-
-Navigate to the frontend directory:
-
-```bash
-cd studiospace
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Create a `.env.local` file in the frontend root directory and configure the required environment variables:
+Create a `.env.local` file in the project root and add the following variables:
 
 ```env
 MONGODB_URI=your_mongodb_connection_string
 BETTER_AUTH_URL=http://localhost:3000
 BETTER_AUTH_SECRET=your_better_auth_secret
+NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_api_key
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_api_key
+NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Make sure your Google OAuth configuration includes this authorized redirect URI:
+Replace each placeholder with your own values. Do not commit `.env.local` or publish secret values.
 
-```text
-http://localhost:3000/api/auth/callback/google
-```
+For local development, the frontend uses `http://localhost:3000` for Better Auth and `http://localhost:5000` for the backend API. The deployed application uses the production environment variables configured in Vercel.
 
-Start the frontend development server:
+### 4. Run the development server
 
 ```bash
 npm run dev
 ```
 
-Open the application:
+Open http://localhost:3000 in your browser.
 
-`http://localhost:3000`
+### 5. Create a production build
+
+```bash
+npm run build
+```
+
+To run the production build locally:
+
+```bash
+npm start
+```
+
+## Examiner Test Account
+
+Use the dedicated test account below to evaluate the application.
+
+- **Email:** `testaccount@gmail.com`
+- **Password:** `abcDef123?`
+
+
+## Backend Repository
+
+The backend source code is maintained in a separate repository:
+
+- **Backend GitHub:** <https://github.com/Mahbubul-417/studiospace-server>
+
+## Deployment
+
+The frontend is deployed on Vercel:
+
+- https://studiospace-site.vercel.app/
+
+The backend API is deployed on Render:
+
+- https://studiospace-server-gqag.onrender.com/
 
 ---
 
-## 🔐 Examiner Test Credentials
-
-Use the following credentials to test the application.
-
-| Field | Value |
-|---|---|
-| Website URL | Add deployed website URL |
-| Test Email | Add examiner test email |
-| Test Password | Add examiner test password |
-
----
-
-## 📁 Project Structure
-
-### Frontend
-- `src/app/` – Application pages and routes.
-- `src/components/` – Reusable UI components.
-- `src/lib/` – Authentication and shared utilities.
-
-### Backend
-- `src/controllers/` – API request handlers.
-- `src/routes/` – API routes.
-- `src/middleware/` – Authentication middleware.
-- `src/types/` – TypeScript interfaces and types.
-
----
-
-## 👨‍💻 Developer
-
-**Project Name:** StudioSpace
-
-**Project Type:** Creative Studio Booking Platform
-
-**Frontend:** Next.js and TypeScript
-
-**Backend:** Express.js and MongoDB
+Developed as a full-stack studio discovery and booking application.
