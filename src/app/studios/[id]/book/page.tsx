@@ -15,7 +15,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Studio {
   _id: string;

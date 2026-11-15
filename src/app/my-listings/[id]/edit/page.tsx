@@ -6,7 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Upload, X, Save } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const categories = [
   "Photography",
