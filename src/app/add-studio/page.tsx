@@ -4,7 +4,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Upload, X, Loader2, Plus } from "lucide-react";
+import { Upload, X, Loader2, Plus, Link as LinkIcon } from "lucide-react";
 
 const API_URL = "http://localhost:5000";
 
@@ -36,6 +36,7 @@ export default function AddStudioPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [image, setImage] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   const [form, setForm] = useState({
@@ -47,6 +48,8 @@ export default function AddStudioPage() {
     deposit: "",
     capacity: "",
   });
+
+  const selectedImage = imageUrl.trim() || image;
 
   function handleChange(
     event: React.ChangeEvent<
@@ -110,6 +113,7 @@ export default function AddStudioPage() {
       }
 
       setImage(result.data.url);
+      setImageUrl("");
       toast.success("Image uploaded successfully");
     } catch {
       toast.error("Failed to upload image. Please try again.");
@@ -122,9 +126,25 @@ export default function AddStudioPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!image) {
-      toast.error("Please upload a studio image");
+    if (!selectedImage) {
+      toast.error("Please upload an image or enter an image URL");
       return;
+    }
+
+    if (imageUrl.trim()) {
+      try {
+        const parsedUrl = new URL(imageUrl.trim());
+
+        if (
+          parsedUrl.protocol !== "http:" &&
+          parsedUrl.protocol !== "https:"
+        ) {
+          throw new Error("Invalid image URL");
+        }
+      } catch {
+        toast.error("Please enter a valid image URL");
+        return;
+      }
     }
 
     if (selectedAmenities.length === 0) {
@@ -175,7 +195,7 @@ export default function AddStudioPage() {
           price,
           deposit,
           capacity,
-          image,
+          image: selectedImage,
           amenities: selectedAmenities,
         }),
       });
@@ -351,27 +371,37 @@ export default function AddStudioPage() {
           <section className="space-y-4">
             <h2 className="text-xl font-semibold">Studio Image</h2>
             <p className="text-sm text-base-content/60">
-              Upload one clear studio photo (maximum 5MB).
+              Upload a photo or paste an image URL. You only need one option.
             </p>
 
-            {image ? (
-              <div className="relative max-w-md overflow-hidden rounded-xl border border-base-300">
-                <img
-                  src={image}
-                  alt="Studio preview"
-                  className="h-64 w-full object-cover"
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Image URL
+              </label>
+              <div className="relative">
+                <LinkIcon
+                  size={18}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50"
                 />
-                <button
-                  type="button"
-                  onClick={() => setImage("")}
-                  className="btn btn-circle btn-sm absolute right-3 top-3"
-                  aria-label="Remove image"
-                >
-                  <X size={18} />
-                </button>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(event) => setImageUrl(event.target.value)}
+                  placeholder="https://example.com/studio-image.jpg"
+                  className="input input-bordered w-full pl-10"
+                />
               </div>
-            ) : (
-              <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-base-300 bg-base-200/50 p-6 text-center transition hover:border-primary">
+              <p className="mt-2 text-xs text-base-content/50">
+                Paste a direct link to an image.
+              </p>
+            </div>
+
+            <div className="divider text-sm">OR</div>
+
+            <div>
+              <p className="mb-2 text-sm font-medium">Upload Image</p>
+
+              <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-base-300 bg-base-200/50 p-6 text-center transition hover:border-primary">
                 {uploading ? (
                   <Loader2 className="mb-3 animate-spin" size={32} />
                 ) : (
@@ -381,7 +411,7 @@ export default function AddStudioPage() {
                   {uploading ? "Uploading image..." : "Click to upload image"}
                 </span>
                 <span className="mt-2 text-sm text-base-content/50">
-                  JPG, PNG or WEBP
+                  JPG, PNG or WEBP (maximum 5MB)
                 </span>
                 <input
                   type="file"
@@ -391,6 +421,27 @@ export default function AddStudioPage() {
                   className="hidden"
                 />
               </label>
+            </div>
+
+            {selectedImage && (
+              <div className="relative max-w-md overflow-hidden rounded-xl border border-base-300">
+                <img
+                  src={selectedImage}
+                  alt="Studio preview"
+                  className="h-64 w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImage("");
+                    setImageUrl("");
+                  }}
+                  className="btn btn-circle btn-sm absolute right-3 top-3"
+                  aria-label="Remove image"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             )}
           </section>
 

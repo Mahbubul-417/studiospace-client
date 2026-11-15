@@ -161,7 +161,7 @@ export default function StudiosPage() {
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
-                className="select select-sm border-none bg-transparent focus:outline-none"
+                className="select select-sm border-none bg-base-100 text-base-content focus:outline-none"
               >
                 <option value="All Categories">All Categories</option>
 
@@ -179,7 +179,7 @@ export default function StudiosPage() {
               <select
                 value={sort}
                 onChange={(event) => setSort(event.target.value)}
-                className="select select-sm border-none bg-transparent focus:outline-none"
+                className="select select-sm border-none bg-base-100 text-base-content focus:outline-none"
               >
                 <option value="default">Default Sorting</option>
                 <option value="low">Price: Low to High</option>
