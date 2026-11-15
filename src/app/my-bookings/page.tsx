@@ -11,6 +11,8 @@ import {
   Loader2,
   ArrowRight,
   ClipboardList,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 
 const API_URL = "http://localhost:5000";
@@ -32,6 +34,8 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -87,6 +91,61 @@ export default function MyBookingsPage() {
 
     return () => clearTimeout(timer);
   }, [fetchBookings]);
+
+  async function handleCancelRequest() {
+    if (!bookingToCancel) return;
+
+    try {
+      setCancelling(true);
+
+      const tokenResponse = await fetch("/api/auth/token");
+
+      if (!tokenResponse.ok) {
+        throw new Error("Please log in to cancel your request");
+      }
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenData.token) {
+        throw new Error("Please log in to cancel your request");
+      }
+
+      const response = await fetch(
+        `${API_URL}/api/bookings/${bookingToCancel._id}/cancel`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${tokenData.token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to cancel request");
+      }
+
+      setBookings((previousBookings) =>
+        previousBookings.map((booking) =>
+          booking._id === bookingToCancel._id
+            ? { ...booking, status: "Cancelled" }
+            : booking
+        )
+      );
+
+      toast.success("Booking request cancelled successfully");
+      setBookingToCancel(null);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to cancel booking request"
+      );
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   function getStatusStyle(status: Booking["status"]) {
     switch (status) {
@@ -230,7 +289,7 @@ export default function MyBookingsPage() {
                         </p>
                       </div>
 
-                      <div className="mt-5 flex items-center justify-between border-t border-base-300 pt-4">
+                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-base-300 pt-4">
                         <div>
                           <p className="text-xs text-base-content/50">
                             Rental Total
@@ -241,12 +300,24 @@ export default function MyBookingsPage() {
                           </p>
                         </div>
 
-                        <Link
-                          href={`/studios/${booking.studioId}`}
-                          className="btn btn-outline btn-sm"
-                        >
-                          View Studio
-                        </Link>
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            href={`/studios/${booking.studioId}`}
+                            className="btn btn-outline btn-sm"
+                          >
+                            View Studio
+                          </Link>
+
+                          {booking.status === "Pending" && (
+                            <button
+                              onClick={() => setBookingToCancel(booking)}
+                              className="btn btn-error btn-outline btn-sm"
+                            >
+                              <X size={16} />
+                              Cancel Request
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -256,6 +327,70 @@ export default function MyBookingsPage() {
           </>
         )}
       </div>
+
+      {bookingToCancel && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-dialog-title"
+            className="w-full max-w-md rounded-2xl border border-base-300 bg-base-100 p-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-error/10 text-error">
+                <AlertTriangle size={25} />
+              </span>
+
+              <button
+                onClick={() => setBookingToCancel(null)}
+                disabled={cancelling}
+                className="btn btn-ghost btn-circle btn-sm"
+                aria-label="Close dialog"
+              >
+                <X size={19} />
+              </button>
+            </div>
+
+            <h2
+              id="cancel-dialog-title"
+              className="mt-5 text-xl font-bold"
+            >
+              Cancel Booking Request?
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-base-content/65">
+              Are you sure you want to cancel your booking request for{" "}
+              <strong>{bookingToCancel.studioTitle}</strong>? This action
+              cannot be undone.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setBookingToCancel(null)}
+                disabled={cancelling}
+                className="btn btn-ghost"
+              >
+                Keep Request
+              </button>
+
+              <button
+                onClick={handleCancelRequest}
+                disabled={cancelling}
+                className="btn btn-error"
+              >
+                {cancelling ? (
+                  <>
+                    <Loader2 size={17} className="animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  "Yes, Cancel Request"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
