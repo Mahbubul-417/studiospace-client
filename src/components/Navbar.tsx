@@ -58,6 +58,7 @@ export default function Navbar() {
 
       toast.success("Logged out successfully");
       setMenuOpen(false);
+      router.replace("/");
       router.refresh();
     } catch {
       toast.error("Unable to log out. Please try again.");
@@ -92,8 +93,8 @@ export default function Navbar() {
                   <Link
                     href={link.href}
                     className={`text-sm font-semibold transition-colors hover:text-primary ${active
-                        ? "text-primary"
-                        : "text-base-content/70"
+                      ? "text-primary"
+                      : "text-base-content/70"
                       }`}
                   >
                     {link.name}
